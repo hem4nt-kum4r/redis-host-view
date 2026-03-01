@@ -135,13 +135,16 @@ function App() {
         <div className="col-6">
           <div className="d-flex justify-content-between">
             <label className="form-label">Mermaid</label>
-            <button
-              className="btn btn-sm btn-outline-primary pt-0 pb-0 d-block mb-1"
-              style={{ width: "9em" }}
-              onClick={handleCopy}
-            >
-              {copied ? "Copied" : "Copy Mermaid"}
-            </button>
+            <div className="btn-group mb-1">
+              <a role="link" className="btn btn-sm btn-outline-primary" style={{ width: "12em" }} href={`https://mermaid.ai/live/edit`} target="_blank">Open Mermaid Live</a>
+              <button
+                className="btn btn-sm btn-outline-primary"
+                style={{ width: "9em" }}
+                onClick={handleCopy}
+              >
+                {copied ? "Copied" : "Copy Mermaid"}
+              </button>
+            </div>
           </div>
           <div
             className="form-control font-monospace editor-font"
