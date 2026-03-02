@@ -27,7 +27,7 @@ function App() {
 
   function handleCopy() {
     navigator.clipboard
-      .writeText(code)
+      .writeText(mermaid.code)
       .then(() => setCopied(true))
       .then(() => setTimeout(() => setCopied(false), 1000));
   }
