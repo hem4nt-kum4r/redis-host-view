@@ -1,5 +1,12 @@
 import { difference } from "lodash";
 
+export const nodeTypes = [
+  { id: "master", style: { background: "#DEFFF8", color: "#378E7A", border: "#46EDC8" }, label: "Master" },
+  { id: "slave", style: { background: "#E2EBFF", color: "#374D7C", border: "#374D7C" }, label: "Slave" },
+  { id: "unreplicated", style: { background: "#FFD600", color: "#424242", border: "#FFD600" }, label: "Unreplicated Master" },
+  { id: "failed", style: { background: "#D50000", color: "#FFFFFF", border: "#D50000" }, label: "Failed Node" },
+  { id: "empty", style: { background: "#EEEEEE", color: "#000000", border: "#999999" }, label: "Empty Node" }]
+
 export function parseHostMapping(hostMapping) {
   const splits = hostMapping
     .split("\n")
@@ -161,7 +168,15 @@ export function createTopo(text, ipToHostname) {
   return [{ hosts: Object.keys(hosts).sort(), topology }];
 }
 
-export function createMermaid(redisTopo, clusterName) {
+export function getConfig(clusterName) {
+  return { title: clusterName, config: { layout: "elk" } }
+}
+
+function getNode(tt) {
+  return `${prefixHash(tt.id)}("${tt.role}@${tt.port}\n${shortenHash(tt.id)}\n${tt.slotRanges.map(sr => sr.start + "-" + sr.end).join("\n")}")`
+}
+
+export function getMermaid(redisTopo, clusterName, dir, includeLegend) {
   const indent = "    ";
   const { hosts, topology } = redisTopo;
 
@@ -169,12 +184,12 @@ export function createMermaid(redisTopo, clusterName) {
     |subgraph legends["Legends"]
     |${indent}example-master["Master"]
     |${indent}example-slave["Slave"]
-    |${indent}example-danger["Unreplicated Master"]
+    |${indent}example-unreplicated["Unreplicated Master"]
     |${indent}example-failed["Failed Node"]
     |${indent}example-empty["Empty Node"]
     |${indent}class example-master master
     |${indent}class example-slave slave
-    |${indent}class example-danger danger
+    |${indent}class example-unreplicated unreplicated
     |${indent}class example-failed failed
     |${indent}class example-empty empty
     |end
@@ -185,8 +200,7 @@ export function createMermaid(redisTopo, clusterName) {
     .flatMap((t) => [
       `subgraph ${t[0].hostname} ["${t[0].hostname}\n${t[0].ip}"]`,
       ...t.map(
-        (tt) =>
-          `${indent}${prefixHash(tt.id)}("\`${tt.role}@${tt.port}\n${shortenHash(tt.id)}\`")`,
+        (tt) => indent + getNode(tt),
       ),
       "end",
     ]);
@@ -230,33 +244,25 @@ export function createMermaid(redisTopo, clusterName) {
     ...replicatedMasters.map((id) => `class ${prefixHash(id)} master`),
     ...slaves.map((n) => `class ${prefixHash(n.id)} slave`),
     ...emptyMasters.map((id) => `class ${prefixHash(id)} empty`),
-    ...vulnerMasters.map((id) => `class ${prefixHash(id)} danger`),
+    ...vulnerMasters.map((id) => `class ${prefixHash(id)} unreplicated`),
     ...failedNodes.map((id) => `class ${prefixHash(id)} failed`),
   ];
 
-  const defs = [
-    "classDef master stroke-width:1px, stroke-dasharray:none, stroke:#46EDC8, fill:#DEFFF8, color:#378E7A",
-    "classDef danger stroke-width:1px, stroke-dasharray:none, stroke:#FFD600, fill:#FFD600, color:#424242",
-    "classDef failed stroke-width:4px, stroke-dasharray:0, stroke:#D50000, fill:#D50000, color:#FFFFFF",
-    "classDef empty stroke-width:1px, stroke-dasharray:none, stroke:#999999, fill:#EEEEEE, color:#000000",
-    "classDef slave stroke-width:1px, stroke-dasharray:none, stroke:#374D7C, fill:#E2EBFF, color:#374D7C",
-    "classDef transparentbg stroke-width:1px, stroke-dasharray:none, stroke:#999999, fill:#00000000, color:#374D7C, rx:2ex, ry:2ex",
-  ];
+  const defs = nodeTypes.map(nt => `classDef ${nt.id} stroke-width:1px, stroke-dasharray:none, stroke:${nt.style.border}, fill:${nt.style.background}, color:${nt.style.color}`)
 
   const graph = stripMargin(
-    `flowchart LR
-    |${indent}subgraph topology["Redis Cluster Topology"]
+    `flowchart ${dir}
     |${subgraphLines.map((l) => indent + indent + l).join("\n")}
     |${edges.map((l) => indent + indent + l).join("\n")}
     |${classes.map((l) => indent + indent + l).join("\n")}
-    |${indent}end
-    |${example.map((l) => indent + l).join("\n")}
-    |${indent}class topology transparentbg
+    |${includeLegend ? example.map((l) => indent + l).join("\n") : ''}
     |${defs.map((l) => indent + l).join("\n")}
     `,
   );
 
-  return config.join("\n") + "\n" + graph;
+  const code = config.join("\n") + "\n" + graph;
+
+  return { code }
 }
 
 function prefixHash(str) {

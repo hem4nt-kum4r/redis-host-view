@@ -1,7 +1,9 @@
 import { useState } from "react";
 import "./App.css";
 import { SlatePlainTextEditor } from "./SlatePlainTextEditor";
-import { parseHostMapping, createTopo, createMermaid } from "./redis";
+import { parseHostMapping, createTopo, getMermaid, nodeTypes } from "./redis";
+import { getPakoString } from "./pako";
+import MermaidRenderer from "./MermaidRenderer";
 
 function App() {
   const [rawHostMapping, setRawHostMapping] = useState({ text: "", html: "" });
@@ -14,13 +16,18 @@ function App() {
   const { hosts, ipToHostname } = parseHostMapping(rawHostMapping.text);
 
   const [redisTopo, errors] = createTopo(rawRedisCluster.text, ipToHostname);
-  const mermaid = createMermaid(redisTopo, clusterName);
 
   const [copied, setCopied] = useState(false);
 
+  const [dir, setDir] = useState("LR");
+
+  const [includeLegend, setIncludeLegent] = useState(false);
+
+  const mermaid = getMermaid(redisTopo, clusterName, dir, includeLegend);
+
   function handleCopy() {
     navigator.clipboard
-      .writeText(mermaid)
+      .writeText(code)
       .then(() => setCopied(true))
       .then(() => setTimeout(() => setCopied(false), 1000));
   }
@@ -42,20 +49,9 @@ function App() {
               })
             }
           />
-          {/* <div
-            className="form-control font-monospace small"
-            contentEditable={true}
-            onBlur={(e) =>
-              setRawHostMapping({
-                text: e.target.innerText,
-                html: e.target.innerHTML,
-              })
-            }
-            dangerouslySetInnerHTML={{ __html: rawHostMapping.html }}
-          ></div> */}
         </div>
         <div className="col overflow-scroll">
-          <label className="form-label">Table View</label>
+          <label className="form-label">Host Table View</label>
           <table className="table table-hover table-borderless table-striped table-sm editor-font">
             <thead className="table-secondary">
               <tr>
@@ -80,13 +76,6 @@ function App() {
         <div className="col-6">
           <div>
             <label className="form-label">Cluster Name</label>
-            {/* <input
-              type="text"
-              className="form-control"
-              value={clusterName}
-              onChange={(e) => setClusterName(e.target.value)}
-              placeholder="Cluster Name"
-            /> */}
             <SlatePlainTextEditor
               className="form-control font-monospace editor-font"
               placeholder="Cluster Name"
@@ -119,39 +108,38 @@ function App() {
                 })
               }
             />
-            {/* <div
-              className="form-control font-monospace"
-              contentEditable={true}
-              onBlur={(e) =>
-                setRawRedisCluster({
-                  text: e.target.innerText,
-                  html: e.target.innerHTML,
-                })
-              }
-              dangerouslySetInnerHTML={{ __html: rawRedisCluster.html }}
-            ></div> */}
           </div>
         </div>
         <div className="col-6">
           <div className="d-flex justify-content-between">
             <label className="form-label">Mermaid</label>
             <div className="btn-group mb-1">
-              <a role="link" className="btn btn-sm btn-outline-primary" style={{ width: "12em" }} href={`https://mermaid.ai/live/edit`} target="_blank">Open Mermaid Live</a>
+              <a role="link" className="btn btn-sm btn-outline-primary" style={{ width: "12em" }} href={`https://mermaid.ai/play#${getPakoString(JSON.stringify(mermaid))}`} target="_blank">Open in Mermaid Play</a>
               <button
                 className="btn btn-sm btn-outline-primary"
-                style={{ width: "9em" }}
+                style={{ width: "12em" }}
                 onClick={handleCopy}
               >
-                {copied ? "Copied" : "Copy Mermaid"}
+                {copied ? "Copied" : "Copy Mermaid Code"}
               </button>
             </div>
           </div>
-          <div
-            className="form-control font-monospace editor-font"
-            style={{ whiteSpace: "pre-wrap" }}
-          >
-            {mermaid}
+          <div className="mt-3">
+            {nodeTypes.map(nt =>
+              <span key={nt.id} className="px-2 py-1 me-2 rounded" style={{ background: nt.style.background, color: nt.style.color, border: "1px solid " + nt.style.border }}>{nt.label}</span>
+            )}
           </div>
+          <div className="mt-3 form-check form-switch">
+            <input className="form-check-input" type="checkbox" checked={includeLegend} onChange={e => setIncludeLegent(e.target.checked)} id="include-example" />
+            <label className="form-check-label" for="include-exampl">
+              Include Legend
+            </label>
+          </div>
+          <div className="btn-group mt-3">
+            <button type="button" className={`btn ${dir == "LR" ? "btn-primary" : "btn-outline-primary"} btn-sm`} onClick={() => setDir("LR")}>Left to Right</button>
+            <button type="button" className={`btn ${dir == "TD" ? "btn-primary" : "btn-outline-primary"} btn-sm`} onClick={() => setDir("TD")}>Top to Bottom</button>
+          </div>
+          <MermaidRenderer className="form-control overflow-scroll mt-3" chart={mermaid.code} />
         </div>
       </div>
     </div>

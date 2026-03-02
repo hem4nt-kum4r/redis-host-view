@@ -11,12 +11,16 @@
   },
   "dependencies": {
     "@lexical/react": "^0.41.0",
+    "@mermaid-js/layout-elk": "^0.2.0",
     "lexical": "^0.41.0",
     "lodash": "^4.17.23",
+    "mermaid": "^11.12.3",
+    "pako": "^2.1.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "slate": "^0.123.0",
-    "slate-react": "^0.123.0"
+    "slate-react": "^0.123.0",
+    "yaml": "^2.8.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
