@@ -2,7 +2,7 @@ name: Deploy redis-host-view to github pages
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   deploy:
