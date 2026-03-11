@@ -10,7 +10,7 @@ mermaid.initialize({
     securityLevel: "loose",
 });
 
-export default function MermaidRenderer({ chart, className }) {
+export default function MermaidRenderer({ chart, className, downloadSvgRef }) {
     const containerRef = useRef(null);
 
     useEffect(() => {
@@ -22,10 +22,16 @@ export default function MermaidRenderer({ chart, className }) {
                     `mermaid-${Date.now()}`,
                     chart
                 );
+
+                const blob = new Blob([svg], { type: "image/svg+xml" });
+                const objectURL = URL.createObjectURL(blob);
+
                 containerRef.current.innerHTML = svg;
+                downloadSvgRef.current.href = objectURL;
             } catch (err) {
                 containerRef.current.innerHTML =
                     "<p style='color:red'>Invalid Mermaid diagram</p>";
+                downloadSvgRef.current.href = "#";
                 console.error(err);
             }
         };

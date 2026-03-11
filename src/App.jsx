@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import "./App.css";
 import { SlatePlainTextEditor } from "./SlatePlainTextEditor";
 import { parseHostMapping, createTopo, getMermaid, nodeTypes } from "./redis";
@@ -6,6 +6,9 @@ import { getPakoString } from "./pako";
 import MermaidRenderer from "./MermaidRenderer";
 
 function App() {
+
+  const downloadSvgRef = useRef(null);
+
   const [rawHostMapping, setRawHostMapping] = useState({ text: "", html: "" });
   const [rawRedisCluster, setRawRedisCluster] = useState({
     text: "",
@@ -114,14 +117,15 @@ function App() {
           <div className="d-flex justify-content-between">
             <label className="form-label">Mermaid</label>
             <div className="btn-group mb-1">
-              <a role="link" className="btn btn-sm btn-outline-primary" style={{ width: "12em" }} href={`https://mermaid.ai/play#${getPakoString(JSON.stringify(mermaid))}`} target="_blank">Open in Mermaid Play</a>
               <button
                 className="btn btn-sm btn-outline-primary"
                 style={{ width: "12em" }}
                 onClick={handleCopy}
               >
-                {copied ? "Copied" : "Copy Mermaid Code"}
+                {copied ? <span><i class="fa-solid fa-check"></i> Copied</span> : <span><i class="fa-solid fa-copy"></i> Copy Mermaid Code</span>}
               </button>
+              <a className="btn btn-sm btn-outline-primary" href={`https://mermaid.ai/play#${getPakoString(JSON.stringify(mermaid))}`} target="_blank"><i class="fa-solid fa-arrow-up-from-bracket"></i> Open in Mermaid Play</a>
+              <a ref={downloadSvgRef} className="btn btn-sm btn-outline-primary" href="#" target="_blank" download={clusterName}><i class="fa-solid fa-download"></i> Download SVG</a>
             </div>
           </div>
           <div className="mt-3">
@@ -139,7 +143,7 @@ function App() {
             <button type="button" className={`btn ${dir == "LR" ? "btn-primary" : "btn-outline-primary"} btn-sm`} onClick={() => setDir("LR")}>Left to Right</button>
             <button type="button" className={`btn ${dir == "TD" ? "btn-primary" : "btn-outline-primary"} btn-sm`} onClick={() => setDir("TD")}>Top to Bottom</button>
           </div>
-          <MermaidRenderer className="form-control overflow-scroll mt-3" chart={mermaid.code} />
+          <MermaidRenderer className="form-control overflow-scroll mt-3" chart={mermaid.code} downloadSvgRef={downloadSvgRef} />
         </div>
       </div>
     </div>
