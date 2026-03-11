@@ -147,8 +147,8 @@ function App() {
             </label>
           </div>
           <div className="btn-group mt-3">
-            <button type="button" className={`btn ${dir == "LR" ? "btn-primary" : "btn-outline-primary"} btn-sm`} onClick={() => setDir("LR")}>Left to Right</button>
-            <button type="button" className={`btn ${dir == "TD" ? "btn-primary" : "btn-outline-primary"} btn-sm`} onClick={() => setDir("TD")}>Top to Bottom</button>
+            <button type="button" className={`btn ${dir == "LR" ? "btn-primary" : "btn-outline-primary"} btn-sm`} onClick={() => setDir("LR")}><i class="fa-solid fa-left-right"></i> Left to Right</button>
+            <button type="button" className={`btn ${dir == "TD" ? "btn-primary" : "btn-outline-primary"} btn-sm`} onClick={() => setDir("TD")}><i class="fa-solid fa-up-down"></i> Top to Bottom</button>
           </div>
           <MermaidRenderer className="form-control overflow-scroll mt-3" chart={mermaid.code} downloadSvgRef={downloadSvgRef} />
         </div>
