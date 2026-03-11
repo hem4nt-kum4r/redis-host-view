@@ -16,6 +16,8 @@ function App() {
   });
   const [clusterName, setClusterName] = useState("");
 
+  const [showModal, setShowModal] = useState(false);
+
   const { hosts, ipToHostname } = parseHostMapping(rawHostMapping.text);
 
   const [redisTopo, errors] = createTopo(rawRedisCluster.text, ipToHostname);
@@ -33,6 +35,11 @@ function App() {
       .writeText(mermaid.code)
       .then(() => setCopied(true))
       .then(() => setTimeout(() => setCopied(false), 1000));
+  }
+
+  function handleUnderStand() {
+    window.open(`https://mermaid.ai/play#${getPakoString(JSON.stringify(mermaid))}`, "_blank");
+    setShowModal(false);
   }
 
   return (
@@ -124,7 +131,7 @@ function App() {
               >
                 {copied ? <span><i class="fa-solid fa-check"></i> Copied</span> : <span><i class="fa-solid fa-copy"></i> Copy Mermaid Code</span>}
               </button>
-              <a className="btn btn-sm btn-outline-primary" href={`https://mermaid.ai/play#${getPakoString(JSON.stringify(mermaid))}`} target="_blank"><i class="fa-solid fa-arrow-up-from-bracket"></i> Open in Mermaid Play</a>
+              <button className="btn btn-sm btn-outline-primary" onClick={() => setShowModal(true)} target="_blank"><i class="fa-solid fa-arrow-up-from-bracket"></i> Open in Mermaid Play</button>
               <a ref={downloadSvgRef} className="btn btn-sm btn-outline-primary" href="#" target="_blank" download={clusterName}><i class="fa-solid fa-download"></i> Download SVG</a>
             </div>
           </div>
@@ -146,6 +153,34 @@ function App() {
           <MermaidRenderer className="form-control overflow-scroll mt-3" chart={mermaid.code} downloadSvgRef={downloadSvgRef} />
         </div>
       </div>
+      <div className={`modal fade ${showModal ? "show" : "hide"}`} tabindex="-1" style={{ display: showModal ? "block" : "none" }} onMouseDown={() => setShowModal(false)}>
+        <div class="modal-dialog" onMouseDown={e => e.stopPropagation()}>
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Warning: Open in Mermaid Play</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onClick={() => setShowModal(false)}></button>
+            </div>
+            <div class="modal-body">
+              <p>You are about to be redirected to an external website <a href="https://mermaid.ai" target="_blank">Mermaid.ai</a>.
+                Please note that this site is not operated or controlled by us.
+                Once you leave this application, <a href="https://mermaid.ai" target="_blank">Mermaid.ai</a> may collect,
+                store, or process your personal data according to its own privacy policies and terms.
+              </p>
+              <p>We do not have control over, and are not responsible for,
+                the content, security, or data handling practices of external
+                websites. We recommend reviewing the privacy policy and
+                terms of the destination site before proceeding.
+              </p>
+
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal" onClick={() => setShowModal(false)}>Close</button>
+              <button type="button" class="btn btn-sm btn-primary" onClick={handleUnderStand}>I Understand</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {showModal && <div className="modal-backdrop fade show"></div>}
     </div>
   );
 }
